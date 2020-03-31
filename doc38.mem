@@ -1,0 +1,822 @@
+          (for version 1.0 of PLOTREE in version 2.6 of PHYLIP)
+
+
+
+                                 PLOTREE
+
+                Christopher A. Meacham, Botany Department
+          University of Georgia, Athens, Georgia 30602, U.S.A.  
+
+         Plotree is a flexible graphics program that is designed to 
+    draw evolutionary trees on a variety of graphics devices and that 
+    is capable of being run on computers of nearly all sizes from 
+    microcomputers to large mainframes.  It is written in a very 
+    standard subset of the Pascal programming language.  Plotree 
+    accepts as input a description of a tree and produces as output 
+    the device-dependent graphics instuctions to cause the tree to be 
+    drawn.  The user can control many aspects of the action of 
+    Plotree by setting various parameters.
+         
+    OVERVIEW OF PLOTREE EXECUTION
+
+         The user supplies input to Plotree in two files that are 
+    designated "parmfile" and "treefile" in the source code.  
+    Parmfile is read first and contains instructions that cause 
+    Plotree to change various parameter settings.  These parameters 
+    indicate to Plotree the plotter being used, the size and position 
+    on the plotting surface of the tree to be drawn, how the tree is 
+    to be labeled, etc.  Treefile is read second and contains a 
+    description of the tree the user wishes drawn.  After treefile is 
+    read, Plotree calculates the layout of the tree and finally 
+    writes the plotter commands to the output file, "plotfile".
+    Plotfile may either be attached directly to the plotting device 
+    or may be a disk file that is later copied to the plotter.  A 
+    second output file, the Pascal standard file "OUTPUT," is used to 
+    display messages about the current status of Plotree and for 
+    error messages.  OUTPUT should normally be attached to the 
+    console.  Another input file, "fontfile," is used to read the 
+    font descriptions used to generate the text plotted by Plotree.  
+    This file is attached to one of the three disk files supplied 
+    with Plotree, "FONT1," "FONT2," or "FONT3," depending on which 
+    font is to be used to label the tree. 
+
+    DESCRIPTION OF THE OUTPUT TREES
+
+         The trees that are drawn by Plotree consist of nodes, which 
+    are drawn as circles, that are connected by internodes, drawn as 
+    lines connecting the circles.  The trees are rooted, though 
+    future versions are planned that will draw unrooted trees.  Each 
+    node represents a species or set of species.  The internodes 
+    represent ancestor-descendant relationships among these species.  
+    Nodes are labeled by one to three letters or numbers plotted 
+    inside the node.  Any node, terminal or internal, may be labeled 
+    or not as the user wishes.  The labels can be plotted in any of 
+    three fonts.  Nodes that are not labeled may be drawn smaller 
+    than labeled nodes or not drawn at all.  The lengths of the 
+    internodes may all be the same or each internode may be drawn at 
+    a length representing the amount of evolution between the 
+    ancestor node and the descendant node.
+
+    GETTING PLOTREE TO RUN ON YOUR COMPUTER
+
+         Several steps need to be taken to get Plotree to run on your 
+    computer.  These steps are outlined below; many are discussed in 
+    more detail further on.
+
+         1.  Make changes, if necessary, to adapt Plotree to the 
+    compiler you are using.  See instructions below.
+
+         2.  Add code, if necessary, to drive the plotter or other 
+    graphics device you intend to use.  See instructions below.
+
+         3.  If your compiler cannot handle a single file of source 
+    code as long as Plotree (e.g. Turbo Pascal), you will need to 
+    divide the original source file into perhaps three files.
+
+         4.  Some compilers may not be able to handle procedures that 
+    are as long as some in Plotree.  If this happens at all, it will 
+    most likely happen in the procedure "plot."  Because it is not 
+    likely that you will need (or want) to drive all the devices 
+    supported, you may delete the code pertaining to plotters you 
+    don't intend to use, or you may simply put comment delimiters 
+    ('(*' and '*)') around that code you wish ignored.  The procedure 
+    "plot" can be drastically reduced in size this way.
+
+         5.  After Plotree compiles successfully, you will need to 
+    set up the two input files, parmfile and treefile, to test your 
+    installation of Plotree.  The parameters, which are put in 
+    parmfile, and their format are described in detail below.  It is 
+    a good idea to use mostly default values of parameters at this 
+    stage.  The only parameters that you may really need to set are 
+    PLOTTER, XUNITS, YUNITS, XSIZE, YSIZE, XPOSITION, YPOSITION, 
+    XOPTION, and YOPTION.  For this test, use only a very simple tree 
+    description in treefile, for example 'A(B)*' (the apostrophes are 
+    NOT part of the tree description).  For fuller discussion of the 
+    tree description format, see below.
+
+         6.  If it compiles successfully, you may sill have problems 
+    running Plotree because a fairly large amount of memory is 
+    required to store the fonts.  You will definitely have problems 
+    if you compile with CP/M Turbo Pascal on a 64k system (e.g. an 
+    Osborne 1).  This problem will probably show up as a "heap/stack 
+    collision" error during execution.  In this case, you must reduce 
+    the size of the array "font" by changing the constant "fontsize" 
+    at the beginning of the program.  If you reduce the size of the 
+    array "font," you must, of course, only use those fonts that will 
+    fit into the smaller array.  See discussion of the FONT parameter 
+    below.  You will probably not encounter problems if you have 128k 
+    or more of memory available.
+
+         7.  Once Plotree is successfully running, you can begin 
+    drawing your own trees.  The most critical parameters the user 
+    has control of are DIAMETER and INTERNODELENGTH.  The larger the 
+    diameter of the nodes in proportion to the distance between the 
+    nodes, the more difficult it is to arrange a given number of 
+    descendant nodes around their ancestral node.  This will 
+    especially be a problem in trees with many multifurcation.  For 
+    fairly simple trees with few nodes, DIAMETER need only be about 
+    2.5 times as large as INTERNODELENGTH.  For more complex trees, 
+    it may be necessary to make DIAMETER 5.0 or 6.0 times 
+    INTERNODELENGTH.  If Plotree cannot fit the branches together 
+    because DIAMETER is too large with respect to INTERNODELENGTH, 
+    you will get message to decrease DIAMETER or increase 
+    INTERNODELENGTH.  
+         The user can also control the important parameter PADDING, 
+    which specifies how close to each other two nodes may be drawn on 
+    the tree.  The default value is 1.1, but you should experiment 
+    with smaller values, perhaps 0.5, for small, simple trees.  The 
+    part of Plotree that decides how close two branches can be placed 
+    without overlapping is not entirely satisfactory in the current 
+    version.  I hope to improve this aspect in future releases.
+
+    ADAPTING PLOTREE TO YOUR PASCAL COMPILER
+
+         The first task is to determine what changes need to be made 
+    to the Plotree Pascal source code.  Usually these will be 
+    restricted to input-output statements in the main program, which 
+    is found at the end of the source listing.  If your Pascal 
+    compiler needs "ASSIGN" statements, you will need to add them.  
+    Turbo Pascal, which is a commonly used Pascal compiler for 
+    microcomputers, needs these ASSIGN statements.  Appendix 2 is a 
+    listing of the main program that can be used in Turbo Pascal.  
+         Some compilers (e.g. Turbo Pascal) need to be told that 
+    Plotree uses recursive procedures, that is, procedures that call 
+    themselves.  In Turbo Pascal, this is done by inserting the 
+    compiler directive '(*$A-*)' as the first line of the program.  
+    (Note that the apostrophes are NOT part of the compiler 
+    directive.)
+
+    MODIFYING PLOTREE TO DRIVE A NEW PLOTTER
+
+         You will need to determine what plotter or plotters you will 
+    use.  Version 1.0 of Plotree drives Radio Shack, Calcomp, 
+    Tektronix, and Hewlett Packard plotters, but in general, very 
+    little code needs to be added to drive other plotters.  Anyone 
+    who is familiar with the requirements of the plotter and who 
+    knows a little Pascal should have no difficulty in making the 
+    necessary modifications to Plotree.  Many computing centers have 
+    utility programs that will accept Calcomp or Tektronix 
+    intstructions as input and will drive the plotting devices 
+    available at that center.  If you are planning to run Plotree in 
+    a mainframe environment like this, you may not need to modify 
+    Plotree to drive the plotter directly.  Check with your computing 
+    center staff to see what options you have.
+         If you find that you do need to modify Plotree to drive your 
+    plotter, relatively few changes are necessary.  Plotree already 
+    recognizes a plotter parameter of 'O' (which stands for "other").  
+    So, if you add your code at the appropriate places, you can 
+    specify a plotter type of 'O' and Plotree will generate the 
+    plotter commands you need.  The crucial change and the only 
+    change that MUST be made is the modification to the procedure 
+    "plot" that generates the device-dependent plotter commands.  
+    (Appendix 1 describes the structure of Plotree and can be used to 
+    located the procedures that need to be modified.)  The code for 
+    your plotter should go at the place indicated near the end of 
+    procedure "plot."  If your plotter needs to be placed in a 
+    standard configuration before the tree is drawn, or if a 
+    particular pen needs to be selected before any other commands are 
+    sent to the plotter, these commands can be put in procedure 
+    "initplotter."  Procedure "initplotter" is called before any 
+    commands to draw are issued.  In a similar way, "finishplotter" 
+    can be used to issue any commands after the tree is drawn.  
+    Procedure "changepen" can be used to change to a different pen 
+    when labeling the nodes.  Fonts 2 and 3 will look better if a 
+    thinner pen is used for labeling than the pen used to draw the 
+    nodes and internodes of the tree itself.  The standard parameters 
+    that are constant for a particular plotter can be made the 
+    default values for that plotter by inserting code in the 
+    procedure "plotrparms."  The parmeters XUNITS and YUNITS should 
+    be set in this way.
+
+    INPUT FORMAT OF TREE DESCRIPTIONS
+
+         Plotree accepts tree descriptions as input from the file 
+    "treefile."  Plotree requires a nested parentheses notation to 
+    describe the tree to be drawn.  The unit in this notation might 
+    be termed a "node description" because it describes the tree at a 
+    single node.  A node description consists of (1) the label of the 
+    node and (2) if there exists any immediately descendant node or 
+    nodes, a list of the node descriptions for the immediately 
+    descendant nodes.  This list of node descriptions is enclosed by 
+    parentheses and the descendant node descriptions are separated by 
+    commas.  It is easy to see that this notation results in a nested 
+    series of parentheses.  The tree description is terminated by a 
+    '*'.  Here are some trees and their notation:
+
+                                             C   D   F   G
+                                              \ /     \ / 
+                                       C       B       E
+           B    B     C   B  C  D      !        \     /
+           !     \   /     \ ! /       B         \   /
+           !      \ /       \!/        !          \ /
+           A       A         A         A           A
+
+    Tree   1       2         3         4           5
+
+
+    Notation for the above trees:
+
+                          1.  A(B)*
+                          2.  A(B,C)*
+                          3.  A(B,C,D)*
+                          4.  A(B(C))*
+                          5.  A(B(C,D),E(F,G))*
+
+    None of the nodes are required to be labeled.  For example, if 
+    all of the internal nodes (that is, nodes A, B, and E) on tree 5 
+    above were unlabeled, then the notation would be
+
+                             ((C,D),(F,G))*
+
+    If all labels were removed from tree 5, the notation would be
+
+                               ((,),(,))*
+
+    Labels may consist of any sequence of upper- or lower-case 
+    alphabetic or numeric characters.  They may not contain blanks 
+    (spaces).  Punctuation marks and other special characters will 
+    not be plotted.  The present version of Plotree will truncate 
+    labels that are longer that three characters.  (This maximum 
+    length of labels is controlled by a constant at the beginning of 
+    the program.)  More than one label may be associated with a 
+    single node, however the current version of Plotree will only 
+    plot the first label.  Multiple labels are separated by blanks.
+         Lengths of internodes may also be specified.  The length of 
+    an internode is associated with the node above that internode.  
+    The length follows the node label and is separated from the node 
+    label by a colon (":").  For example, the tree
+
+                                        C
+                               B       /   
+                                \     /  
+                             1.5 \   / 2.0
+                                  \ /    
+                                   A
+
+    would have the notation
+
+                       A(B:1.5,C:2.0)*
+
+    Lengths may have decimal points or not.  Blanks may appear 
+    anywhere within the tree notation except within labels or within 
+    lengths (e.g. '1. 52' is not a valid length).
+         Any number of tree descriptions may be placed in treefile 
+    and may continue to as many lines as necessary, but each tree 
+    description must begin on a new line.
+
+    GENERAL FORMAT OF PARAMETER FILE    
+
+         The parameters that control Plotree are placed in 
+    "parmfile," a separate input file from the file that contains the 
+    tree descriptions.  Each line in parmfile sets a single 
+    parameter.  The name of the parameter is given first followed by 
+    the value to be given that parameter.  Any number of blanks may 
+    preceed the parameter name.  No blanks may occur within the 
+    parameter name.  The parameter name must be in all upper-case 
+    letters.  At least one blank must separate the parameter name 
+    from the parameter value.  The kinds of values that parameters 
+    may have depends on the parameter.  The legitimate parameter 
+    values are described below.  Plotree only uses the first two 
+    letters of the parameter name to determine which parameter to 
+    set.  However, it is recommended that the full parameter name be 
+    used for better mnemonic value.  The parameters can be grouped 
+    into six major classes according to the aspect of Plotree that 
+    they control:
+
+                1.  Plotter parameters       Default value
+                      PLOTTER                      R
+                      XUNITS                    50.0     *
+                      YUNITS                    50.0     *
+
+                2.  Tree form parameters
+                      LENGTHMODE                   N
+                      NODEDIAMETER               1.0
+                      INTERNODELENGTH            3.0
+                      PADDING                    1.1
+                      SMALLNODE                  0.6
+
+                3.  Label parameters
+                      FONT                         1
+                      PENCHANGE                    N     *
+                      LABELSIZE                  1.0
+
+                4.  Size parameters
+                      SIZEMODE                     Y 
+                      XSIZE                      9.6     *
+                      YSIZE                     15.0     *
+                      MAXNODE                    4.0
+
+                5.  Position and rotation parameters
+                      XPOSITION                  4.8     *
+                      YPOSITION                  0.0     *
+                      XOPTION                      C
+                      YOPTION                      A     *
+                      ROTATION                   0.0     *
+
+                6.  Monitor parameter
+                      MONITOR                      N
+
+         * Values marked by an asterisk may be changed by specifying 
+    different.  See PLOTTER parameter below.
+
+    1.  PLOTTER PARAMETERS
+
+    PLOTTER - This parameter identifies the plotter that will plot 
+    the tree and thus controls the kind of plotter commands that are 
+    produced by Plotree.  The values PLOTTER may have are single 
+    upper-case letters.  The legitimate values and the plotters they 
+    identify are
+
+                'R' - Radio Shack CGP-115
+                'C' - Calcomp
+                'T' - Tektronix 4010
+                'H' - Hewlett Packard 7470
+
+         The PLOTTER parameter should always be the first parameter 
+    in parmfile because it may change the default values for other 
+    parameters.   These default values are changed when Calcomp, 
+    Tektronix, or Hewlett Packard plotters are specified:
+
+         Calcomp:                        New default value    
+                      XUNITS                   39.37
+                      YUNITS                   39.37
+                      XSIZE                    25.0
+                      YSIZE                    25.0
+                      XPOSITION                12.5
+
+         Tektronix:
+                      XUNITS                    50.0
+                      YUNITS                    50.0
+                      XSIZE                    20.46
+                      YSIZE                     15.6
+                      XPOSITION                10.23
+      
+         Hewlett Packard:
+                      XUNITS                   400.0
+                      YUNITS                   400.0
+                      XSIZE                     24.0
+                      YSIZE                     18.0
+                      XPOSITION                12.85
+                      YPOSITION                 9.55
+                      YOPTION                      C
+                      ROTATION                  90.0    
+
+
+    XUNITS, YUNITS - These two parameters describe the resolution of 
+    the plotter to be used in terms of number of plotter units 
+    (steps) per centimeter in the x-direction and y-direction 
+    respectively.  Legitimate values are positive real numbers.  For 
+    most plotters, those that have a one-to-one aspect ratio, these 
+    parameters will be set to the same value.  Many video graphics 
+    display devices have aspect ratios that are not one-to-one, in 
+    which case the number of plotter steps required to move one 
+    centimeter in the x-direction will be different from the number 
+    of plotter steps required to move the same distance in the y-
+    direction.  If the nodes of trees you plot are elipses instead of 
+    circles and you have set XUNITS and YUNITS to the same value, 
+    then your plotting device does not have a one-to-one aspect ratio 
+    and these parameters should be set to different values.  Once you 
+    have determined the correct values for your plotting device, 
+    these parameters need never be changed and you may consider 
+    modifying your version of Plotree to make them the default values 
+    for your plotter.  Values need not be integers; for example, a 
+    Calcomp plotter that has 100 plotter units (steps) per inch has 
+    39.37 units per centimeter.
+
+    2.  TREE FORM PARAMETERS
+
+    LENGTHMODE - This parameter controls whether all internodes on 
+    the tree will have the same length or the internode lengths will 
+    vary according to the lengths given them in the tree description 
+    read from treefile.  The legitimate values for this parameter are 
+    the upper-case letters 'N' and 'Y' for "no" and "yes" 
+    respectively.  If 'N' is specified, the centers of connected 
+    nodes will all be the same distance apart.  The distance between 
+    centers in this case will be the number of centimeters that the 
+    parameter INTERNODELENGTH is set to.  If 'Y' is specified, the 
+    distance in centimeters between the perimeters of connected nodes 
+    will be set to INTERNODELENGTH multiplied by the length given 
+    that internode in the tree description.  Note that if 'N' is 
+    specified, the distance, which is constant among connected pairs 
+    of nodes, is measured between centers of nodes, because the nodes 
+    may vary in diameter.  On the other hand if 'Y' is specified, the 
+    distance, which varies among connected pairs of nodes, is 
+    measured between the perimeters of the connected nodes.  If 'Y' 
+    is specified, and no length is given for a particular internode 
+    or if the internode length is zero, a length of one will be 
+    assumed for that internode.
+
+    NODEDIAMETER - This parameter specifies the diameter, in 
+    centimeters, of labeled nodes.  Legitimate values are positive 
+    real numbers.
+
+    INTERNODELENGTH - This parameter specifies the unit of length of 
+    internodes in the tree.  Legitimate values are positive real 
+    numbers.  The action of this parameter depends on the setting of 
+    parameter LENGTHMODE as described above.
+
+    SMALLNODE - This parameter specifies the diameter of unlabeled 
+    nodes as a proportion of the size of labeled nodes.  Legitimate 
+    values are positive real numbers, which should be less than or 
+    equal to 1.0.  If SMALLNODE is set to 1.0, unlabeled nodes will 
+    be the same size as labeled nodes.  If SMALLNODE is set to zero, 
+    unlabeled nodes will be reduced to a point and the internodes 
+    that are attached to a particular unlabeled node will then simply 
+    intersect at that point.  
+         If the user wants a particular node to be drawn at the large 
+    node size even though it has no label, it may be given a label 
+    consisting of the single character '@'.  Plotree recognizes this 
+    as a "null" label and will plot that node at the larger size but 
+    will not plot any label.  This may be useful if the labels are to 
+    be added later by hand.
+
+    PADDING - This parameter specifies the minimum distance allowed 
+    between the centers of nodes on adjacent branches as a proportion 
+    of NODEDIAMETER.  Legitimate values are positive real numbers.  
+    If PADDING is set to 1.0, no two nodes will be drawn on top of 
+    each other.  Somewhat more pleasing results are obtained if this 
+    parameter is given a value of about 0.5.  If a tree is being 
+    drawn for publication, some experimenting with this parameter may 
+    be in order.  For trees with large numbers of nodes or for trees 
+    with many multifurcations, it will be necessary to set this 
+    parameter to 1.0 (or perhaps 1.1 to keep nodes from touching). 
+
+    3.  LABEL PARAMETERS
+
+    FONT - This parameter specifies which of three character fonts 
+    will be used for labels.  Legtimate values are the characters 
+    '1', '2', and '3'.  The fonts that are used are taken from the 
+    Hershey fonts, which are public-domain and are distributed by the 
+    National Bureau of Standards.  Each font includes only the upper-
+    case letters, lower-case letters and arabic numerals.  FONT 1 
+    specifies the single-stroke character font, simplex roman.  FONT 
+    2 specifies the double-stroke character font, duplex roman.  FONT 
+    3 specifies the multi-stroke character font, complex roman.  
+    These fonts require progressively more storage.  FONT 1 requires 
+    1013 integers in storage; FONT 2, 1850 integers; and FONT 3, 2870 
+    integers.  If necessary the amount of storage required by Plotree 
+    can be substantially reduced by setting the constant "fontsize" 
+    at the begining of the program code to accomodate only the 
+    smallest font, FONT 1.  If this is done, of course, only FONT 1 
+    can be used.
+         Labels can consist of from one to three numeral and letters.  
+    The height of labels depends on the number of characters in the 
+    longest label on the tree.  If the maximum length of labels on a 
+    particular tree is just two characters, instead of three, the 
+    labels will be plotted with a greater height than if any three 
+    character labels were used.  If all labels are single characters, 
+    then the labels will be plotted even larger.  If one wishes to 
+    plot the labels at the three-character size even though all 
+    labels have fewer than three characters, one need only pad one of 
+    the labels by adding one or two '@'s to the end of one of the 
+    labels.  This '@' will not be plotted, but will cause Plotree to 
+    count three characters as the maximum label length.
+
+    PENCHANGE - This parameter specifies whether the plotter pen is 
+    to be changed before plotting the label on plotters that allow 
+    automatic pen changes.  Legitimate values are 'Y', which causes 
+    the pen to be changed before plotting the label, and 'N', which 
+    causes the plotter to use the same pen that is used to draw the 
+    nodes and internodes of the tree.  Trees will look better for 
+    publication if a wider pen is used to draw the nodes and 
+    internodes that make up the tree and a narrower pen is used to 
+    draw the node labels, particularly if FONT 3 is used.  
+
+    LABELSIZE - This parameter specifies the size of the labels 
+    plotted within the nodes as a proportion of the size normally 
+    chosen by Plotree.  Legitimate values are positive real numbers, 
+    which should be near 1.0.  This parameter allows the user to 
+    "fine tune" the size of labels to their best appearance on the 
+    graphics device being used
+
+    3.  SIZE PARAMETERS
+
+    SIZEMODE - This parameter specifies whether the tree is to be 
+    drawn at the scale determined by the NODEDIAMETER and 
+    INTERNODELENGTH parameters or the tree is to be drawn at the 
+    scale determined by the XSIZE and YSIZE parameters.  Legitimate 
+    values are 'N', scale is determined by NODEDIAMETER and 
+    INTERNODELENGTH, and 'Y', scale is determined by XSIZE and YSIZE 
+    parameters.  XSIZE and YSIZE are described below.
+
+    XSIZE, YSIZE - These parameters describe the dimensions, in 
+    centimeters, of a box.  If SIZEMODE has value 'Y', the tree will 
+    be rescaled so that it is as large as possible and still fits in 
+    a circumscribed box XSIZE by YSIZE.  Legitimate values are 
+    positive real numbers.  XSIZE specifies the x-dimension of the 
+    box, YSIZE, the y-dimension.  The rescaled tree will not exceed 
+    XSIZE centimeters in the x-direction nor YSIZE centimenters in 
+    the y-direction and will exactly equal at least one of XSIZE or 
+    YSIZE in the appropriate direction.  If SIZEMODE has value 'N', 
+    then XSIZE and YSIZE have no effect.
+         If trees are always plotted at the size specified by 
+    NODEDIAMETER and INTERNODELENGTH, the sizes of different trees 
+    may vary greatly.  If NODEDIAMETER and INTERNODELENGTH are set at 
+    constant values, some trees may exceed the limits of the 
+    particular graphics device used, particularly video devices.  
+    Suitable values of XSIZE and YSIZE will cause all trees plotted 
+    to have the same overall dimensions (unless MAXNODE is active).
+
+    MAXNODE - If SIZEMODE has value 'Y', MAXNODE specifies the 
+    maximum size, in centimeters, of a node in the rescaled tree.  
+    Legitimate values are positive real numbers.  If SIZEMODE has 
+    value 'N', MAXNODE has no effect.
+         For very small trees, XSIZE and YSIZE may cause them to be 
+    drawn ludicrously large with nodes many centimeters across.  
+    MAXNODE limits the amount of size increase of a rescaled tree.  
+
+    5.  POSITION AND ROTATION PARAMETERS
+
+    XPOSITION, YPOSITION - These parameters specify the position on 
+    the plotting surface at which the tree is to be drawn.  The 
+    position is indicated in centimeters from the origin of the 
+    plotting device.  Legitimate values are real numbers.  The exact 
+    mode of action depends on XOPTION and YOPTION; see below.  
+         These parameters allow the user to specify the normal 
+    position of a tree on the graphics device or allow the user to 
+    accurately place several trees on a single plot.
+
+    XOPTION, YOPTION - These parameters specify how the XPOSITION and 
+    YPOSITION, respectively, of a tree are to be determined.  
+    Legitimate values are single upper-case letters:
+
+       For XOPTION:
+         
+         'O' - XPOSITION indicates the center of the root node
+         'C' - tree is centered in the x-direction about XPOSITION
+         'L' - tree lies to the left of XPOSITION, rightmost edge of
+                tree is at XPOSITION
+         'R' - tree lies to the right of XPOSITION, leftmost edge of
+                tree is at XPOSITION
+
+       For YOPTION:
+
+         'O' - YPOSITION indicates the center of the root node
+         'C' - tree is centered in the y-direction about YPOSITION
+         'A' - tree lies above YPOSITION, bottom edge of tree is at
+                YPOSITION
+         'B' - tree lies below YPOSITION, top edge of tree is at 
+                YPOSITION
+
+    ROTATION - This parameter allows the tree to be rotated with 
+    respect to the plotter coordinate system.  ROTATION specifies the 
+    angle, in degrees, through which the tree is to be rotated.  
+    Legitimate values are real numbers.  Positive values indicate 
+    clockwise rotations.
+         Some plotters have a plotting bed that is longer in the y-
+    direction than in the x-direction.  Because trees plotted by 
+    Plotree are usually taller than they are wide, it may be 
+    advisable to rotate them through 90.0 degrees, so that the top of 
+    the tree extends in the positive y-direction.
+         Note that XPOSITION, XOPTION, and the corresponding y 
+    parameters always refer to the plotter coordinate system and are 
+    not affected by ROTATION.  To center an unrotated tree about its 
+    own vertical axis, one would use an XOPTION of 'C'.  A tree that 
+    has been rotated through 90.0 degrees would be centered about its 
+    own vertical axis by using a YOPTION of 'C'.
+     
+    6.  MONITOR PARAMETER
+
+    MONITOR - The MONITOR parameter determines whether Plotree 
+    provides some indication of its progress during the calculation 
+    of the tree.  Legitimate values are 'Y', in which case it lists a 
+    message "AT NODE x" to the console device as it processes node x, 
+    and 'N', in which case no such messages are provided.  
+         If the program is being run on the user's own microcomputer, 
+    the MONITOR option allows the user to judge the progress that is 
+    being made during the most time-consuming part of the 
+    calculations.  Use of the MONITOR option is not recommended in 
+    any situation where hard copy is made of messages listed on the 
+    console device (e.g. batch-mode mainframe situations) as the 
+    output generated by this option can be quite lengthy and is of 
+    little use after the run is completed.
+
+    PLANS FOR FUTURE DEVELOPMENT OF PLOTREE
+
+         Future versions are planned that will
+         
+         1.  draw undirected trees,
+         2.  drive dot matrix printers and video graphics displays, 
+    probably using the GSX graphics interface package developed by 
+    Digital Research, Inc.,
+         3.  draw standard cladograms and phenograms,
+         4.  allow other schemes for labeling the trees, and
+         5.  put arrows on the internodes.
+
+    HOW USERS OF PLOTREE CAN HELP IT BECOME BETTER
+
+         By writing me (C. Meacham, Botany, Univ. of Georgia, Athens, 
+    GA 30602), you can make this program more useful to you and to 
+    others.  Notify me of any special problems you encounter getting 
+    it running on your system, especially if you successfully solve 
+    these problems.  I can incorporate notes on potential problems 
+    and their solution into this documentation.  If you develop code 
+    to drive other plotters, let me know and I can put the code in 
+    the version of Plotree I distribute or list it in this 
+    documentation.  If you cannot get Plotree to produce satisfactory 
+    drawings of a particular tree, send me the tree description and 
+    describe the failings of Plotree.  I will try to modify future 
+    versions to make it more successful in drawing the kinds of trees 
+    people need it for. 
+
+
+
+    APPENDIX 1.  The structure of Plotree
+
+
+    PROGRAM plotree
+                   The main program where file assignments are made 
+                   and files are opened and closed
+
+       PROCEDURE initparms
+                   Most global variables are initialized here
+
+          PROCEDURE readparms
+                   Reads and sets parameters specified in parmfile
+
+          PROCEDURE getp
+                   Reads a single nonblank character from parmfile
+
+          FUNCTION setmode
+                   Sets "mode" parameters, which have values of 'Y' 
+                   or 'N'
+
+          PROCEDURE plotrparms
+                   Sets default parameters for a particular plotter        
+
+       PROCEDURE initnodes
+                   Sets variables that are associated with single 
+                   nodes to their initial values
+
+       PROCEDURE readtree
+                   Reads the tree description from treefile
+
+          PROCEDURE addnode
+                   Recursive procedure that processes tree 
+                   description for a single node
+
+             PROCEDURE getch
+                   Reads a single character from treefile, ignoring
+                   end-of-line
+
+             PROCEDURE processnodelabel
+                   Reads the label of a node
+
+             PROCEDURE processlength
+                   Reads the length of the internode subtending a 
+                   node
+
+       PROCEDURE calctree
+                   Recursively calculates the layout of the tree
+
+          PROCEDURE fanflip
+                   Recursive  procedure that rotates a branch 
+                   around its ancestral node and may flip a branch
+                   over
+
+          PROCEDURE arrange
+                   Determines the arrangement of the branches that 
+                   are attached to a single node
+
+             PROCEDURE switchbranches
+                   Exchanges the position of two branches that are 
+                   attached to a node
+
+          PROCEDURE scrunch
+                   Recursive routine that squeezes together branches 
+                   that are above a single node
+
+          PROCEDURE polartrans
+                   Recursive routine that translates the polar 
+                   coordinates of nodes that are descendants of a 
+                   single node
+
+       PROCEDURE hardwarecoordinates
+                   Transforms the node coordinates from the original 
+                   polar coordinates to the device-dependent plotter 
+                   coordinates
+     
+       PROCEDURE loadfont
+                   Reads the specified font from fontfile
+
+       PROCEDURE labelsetup
+                   Determines the height of labels
+
+       PROCEDURE plot
+                   Writes a plotter move or draw command on plotfile 
+                   when passed a pair of x-y coordinates
+
+          PROCEDURE pout
+                   Writes an integer on plotfile without padded 
+                   blanks
+
+       PROCEDURE drawtree
+                   Recursive routine that draws the tree
+
+          PROCEDURE drawinternode
+                   Draws an internode
+                
+             FUNCTION adjustend
+                   Trims the end of an internode so that it stops at
+                   the node
+
+          PROCEDURE drawnode
+                   Draws the circle at a node
+
+          PROCEDURE plotlabel
+                   Plots the label at a node
+
+             PROCEDURE changepen
+                   Issues the plotter command to change pens
+
+             PROCEDURE plottext
+                   Generates the coordinate pairs to plot text
+
+                PROCEDURE plotchar
+                   Generates the coordinate pairs for a single 
+                   character
+
+             FUNCTION lengthtext
+                   Determines the length of the text to be plotted
+
+       PROCEDURE initplotter
+                   Issues any plotter commands needed to set up the 
+                   initial plotter configuration
+
+       PROCEDURE finishplotter
+                   Issues any necessary plotter commands to terminate 
+                   the plot
+
+       PROCEDURE garbagestack
+                   Saves node records for future use after tree is 
+                   plotted
+
+
+
+
+
+    APPENDIX 2.  Turbo Pascal version of main program
+       Lines that have been added are marked by "**" on the right.
+
+    BEGIN (* plotree *)
+       WRITELN(OUTPUT, ' PLOTREE VERSION 1.0');
+       WRITELN(OUTPUT, ' DISTRIBUTED WITH PHYLIP 2.6');
+       WRITELN(OUTPUT, ' READING OF PARAMETERS BEGINS');
+       ASSIGN(parmfile, 'PARMS.');                                 **
+       RESET(parmfile);
+       initparms;
+       CLOSE(parmfile);
+       WRITELN(OUTPUT, ' READING OF PARAMETERS COMPLETED');
+       IF parmsok THEN BEGIN
+          ASSIGN(treefile, 'TREE.');                               **
+          RESET(treefile);
+          WHILE NOT EOF(treefile) DO BEGIN
+             candraw := TRUE;
+             radius := diameter/2.0;
+             WRITELN(OUTPUT, ' READING OF TREE BEGINS');
+             readtree;
+             WRITELN(OUTPUT, ' READING OF TREE COMPLETED');
+             WRITELN(OUTPUT, ' CALCULATION OF TREE BEGINS');
+             calctree(root);
+             WRITELN(OUTPUT, ' CALCULATION OF TREE COMPLETED');
+             IF candraw
+                THEN BEGIN
+                   hardwarecoordinates;
+                   IF labelspresent THEN BEGIN
+                      labelsetup;
+                      IF NOT(fontloaded) AND labelspresent THEN BEGIN
+                         WRITELN(OUTPUT, ' LOADING OF FONT BEGINS');
+                         CASE fonttoload OF                        **
+                            font1: ASSIGN(fontfile, 'FONT1.');     **
+                            font2: ASSIGN(fontfile, 'FONT2.');     **
+                            font3: ASSIGN(fontfile, 'FONT3.')      **
+                            END;                                   **
+                         RESET(fontfile);
+                         loadfont(font);
+                         CLOSE(fontfile);  (* may have to change this *)
+                         WRITELN(OUTPUT, ' LOADING OF FONT COMPLETED');
+                         fontloaded := TRUE;
+                         END;
+                      END;
+                   WRITELN(OUTPUT, ' DRAWING OF TREE BEGINS');
+                   ASSIGN(plotfile, 'LST:');                       **
+                   REWRITE(plotfile);
+                   initplotter;
+                   drawtree(root);
+                   finishplotter;
+                   WRITELN(OUTPUT, ' DRAWING OF TREE COMPLETED');
+                   END
+                ELSE BEGIN
+                   WRITELN(OUTPUT, ' TREE CANNOT BE DRAWN WITH CURRENT ',
+                             'PARAMETERS');
+                   WRITELN(OUTPUT, '  NODE DIAMETER MUST BE SMALLER OR ',
+                             'INTERNODE LENGTH LARGER');
+                   END;
+                garbagestack;
+                END;
+             END;
+          CLOSE(treefile);   (* may have to change this *)
+          CLOSE(plotfile);   (* may have to change this *)
+          WRITELN(OUTPUT, ' EXECUTION TERMINATED');
+          END. (* plotree *)
+
