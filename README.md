@@ -5,7 +5,17 @@ I worked with Joe Felsenstein in his lab in the Genetics Department at the Unive
 
 The documentation of PLOTREE includes this discription of the format for encoding phylogenetic trees:
 
-INPUT FORMAT OF TREE DESCRIPTIONS
+
+       (for version 1.0 of PLOTREE in version 2.6 of PHYLIP)
+
+                                 PLOTREE
+
+                Christopher A. Meacham, Botany Department
+          University of Georgia, Athens, Georgia 30602, U.S.A.  
+          
+                                  [...]
+                                  
+    INPUT FORMAT OF TREE DESCRIPTIONS          
 
          Plotree accepts tree descriptions as input from the file 
     "treefile."  Plotree requires a nested parentheses notation to 
@@ -80,3 +90,4 @@ INPUT FORMAT OF TREE DESCRIPTIONS
          Any number of tree descriptions may be placed in treefile 
     and may continue to as many lines as necessary, but each tree 
     description must begin on a new line.
+
